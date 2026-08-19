@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Zolexora — Pin your exact location (DIGIPIN)</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<style>
+  *{box-sizing:border-box;}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    max-width:640px;
+    margin:2rem auto;
+    padding:0 1rem;
+    color:#151A33;
+  }
+  h1{ font-size:1.3rem; margin-bottom:0.25rem; }
+  .page-header{ display:flex; align-items:center; justify-content:space-between; gap:1rem; }
+  .page-header h1{ margin:0; }
+  #logout-btn{
+    flex:none; padding:0.45rem 0.75rem; border:1px solid #ddd; border-radius:7px;
+    background:#fff; color:#151A33; font:0.82rem inherit; cursor:pointer;
+  }
+  #logout-btn:hover{ background:#F7F6F2; }
+  #logout-btn:disabled{ opacity:0.6; cursor:not-allowed; }
+  p.hint{ color:#3C4266; font-size:0.9rem; margin-top:0; margin-bottom:1rem; }
+  .tabs{ display:flex; gap:8px; margin-bottom:12px; }
+  .tabs button{
+    flex:1; padding:0.6rem; border-radius:8px; border:1px solid #ddd;
+    background:#fff; cursor:pointer; font-size:0.9rem; font-family:inherit;
+  }
+  .tabs button.active{ background:#151A33; color:#fff; border-color:#151A33; }
+  .map-wrap{ position:relative; }
+  #location-btn{
+    position:absolute; right:12px; bottom:12px; z-index:1001;
+    width:38px; height:38px; padding:0; border-radius:4px; border:1px solid #bbb;
+    background:#fff; color:#151A33; cursor:pointer; font-size:1.35rem; line-height:1;
+    box-shadow:0 1px 4px rgba(0,0,0,0.3); font-family:inherit;
+  }
+  #location-btn:hover{ background:#f4f4f4; }
+  #location-btn:disabled{ opacity:0.6; cursor:not-allowed; }
+  #location-status{ display:block; min-height:1.2em; margin-top:5px; color:#3C4266; font-size:0.82rem; }
+  #location-status.error{ color:#B3261E; }
+  #map, #map2{
+    height:340px;
+    width:100%;
+    border-radius:10px;
+    border:1px solid #ddd;
+    background:#eee; /* visible even before tiles load */
+  }
+  .result-box{
+    display:flex; align-items:center; gap:12px; margin-top:12px; flex-wrap:wrap;
+  }
+  .result-pill{
+    background:#F7F6F2; border-radius:10px; padding:0.75rem 1rem; flex:1; min-width:200px;
+  }
+  .result-pill .label{ font-size:0.78rem; color:#3C4266; }
+  .result-pill .value{ font-size:1.2rem; font-weight:600; font-family:monospace; margin-top:2px; }
+  #copy-btn{
+    padding:0.6rem 1rem; border-radius:8px; border:1px solid #ddd; background:#fff;
+    cursor:pointer; display:none; font-family:inherit;
+  }
+  .coords{ font-size:0.82rem; color:#666; margin-top:6px; }
+  #decode-input{
+    flex:1; padding:0.6rem 0.8rem; border-radius:8px; border:1px solid #ddd; font-family:monospace;
+  }
+  #decode-btn{
+    padding:0.6rem 1rem; border-radius:8px; border:none; background:#151A33; color:#fff; cursor:pointer;
+  }
+  .row{ display:flex; gap:8px; margin-bottom:8px; }
+  .error-text{ color:#B3261E; font-size:0.85rem; display:none; margin-bottom:8px; }
+</style>
+</head>
+<body>
+
+  <header class="page-header">
+    <h1>Pin your exact delivery location</h1>
+    <button type="button" id="logout-btn">Log out</button>
+  </header>
+  <p class="hint">Drop a pin for a precise DIGIPIN, or decode an existing one.</p>
+
+  <div class="tabs">
+    <button id="tab-encode" class="active">Drop pin → DIGIPIN</button>
+    <button id="tab-decode">DIGIPIN → location</button>
+  </div>
+
+  <div id="panel-encode">
+    <div class="map-wrap">
+      <div id="map"></div>
+      <button type="button" id="location-btn" aria-label="Use my live location" title="Use my live location">⌖</button>
+    </div>
+    <span id="location-status" aria-live="polite"></span>
+    <div class="result-box">
+      <div class="result-pill">
+        <div class="label">DIGIPIN</div>
+        <div class="value" id="pin-out">Click the map</div>
+      </div>
+      <button id="copy-btn">Copy</button>
+    </div>
+    <div class="coords" id="coords-out"></div>
+  </div>
+
+  <div id="panel-decode" style="display:none;">
+    <div class="row">
+      <input id="decode-input" placeholder="39J49LL8T4" />
+      <button id="decode-btn">Find</button>
+    </div>
+    <div class="error-text" id="decode-error"></div>
+    <div id="map2" style="display:none;"></div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script>
+    // Wait for both the DOM and the Leaflet script to be fully loaded
+    // before touching `L` or any #map element — this is what a white
+    // page usually means: script ran before Leaflet was ready.
+    window.addEventListener("load", function () {
+
+      var DIGIPIN_GRID = [
+        ["F","C","9","8"],
+        ["J","3","2","7"],
+        ["K","4","5","6"],
+        ["L","M","P","T"]
+      ];
+      var BOUNDS = { minLat:2.5, maxLat:38.5, minLon:63.5, maxLon:99.5 };
+
+      function encodeDigipin(lat, lon) {
+        var minLat = BOUNDS.minLat, maxLat = BOUNDS.maxLat;
+        var minLon = BOUNDS.minLon, maxLon = BOUNDS.maxLon;
+        if (lat < minLat || lat > maxLat || lon < minLon || lon > maxLon) return null;
+        var code = "";
+        for (var lvl = 1; lvl <= 10; lvl++) {
+          var latStep = (maxLat - minLat) / 4;
+          var lonStep = (maxLon - minLon) / 4;
+          var row = 3 - Math.min(3, Math.floor((lat - minLat) / latStep));
+          var col = Math.min(3, Math.floor((lon - minLon) / lonStep));
+          code += DIGIPIN_GRID[row][col];
+          if (lvl === 3 || lvl === 6) code += "-";
+          var newMaxLat = minLat + (4 - row) * latStep;
+          var newMinLat = minLat + (3 - row) * latStep;
+          var newMinLon = minLon + col * lonStep;
+          var newMaxLon = newMinLon + lonStep;
+          minLat = newMinLat; maxLat = newMaxLat;
+          minLon = newMinLon; maxLon = newMaxLon;
+        }
+        return code;
+      }
+
+      function decodeDigipin(pin) {
+        var clean = pin.replace(/-/g, "").toUpperCase();
+        if (clean.length !== 10) return null;
+        var minLat = BOUNDS.minLat, maxLat = BOUNDS.maxLat;
+        var minLon = BOUNDS.minLon, maxLon = BOUNDS.maxLon;
+        for (var i = 0; i < 10; i++) {
+          var ch = clean[i];
+          var found = false, r, c;
+          for (r = 0; r < 4; r++) {
+            c = DIGIPIN_GRID[r].indexOf(ch);
+            if (c !== -1) { found = true; break; }
+          }
+          if (!found) return null;
+          var latStep = (maxLat - minLat) / 4;
+          var lonStep = (maxLon - minLon) / 4;
+          var newMaxLat = maxLat - r * latStep;
+          var newMinLat = newMaxLat - latStep;
+          var newMinLon = minLon + c * lonStep;
+          var newMaxLon = newMinLon + lonStep;
+          minLat = newMinLat; maxLat = newMaxLat;
+          minLon = newMinLon; maxLon = newMaxLon;
+        }
+        return { lat: (minLat + maxLat) / 2, lon: (minLon + maxLon) / 2 };
+      }
+
+      var tabEncode = document.getElementById("tab-encode");
+      var tabDecode = document.getElementById("tab-decode");
+      var panelEncode = document.getElementById("panel-encode");
+      var panelDecode = document.getElementById("panel-decode");
+
+      tabEncode.onclick = function () {
+        tabEncode.classList.add("active");
+        tabDecode.classList.remove("active");
+        panelEncode.style.display = "block";
+        panelDecode.style.display = "none";
+        setTimeout(function () { map.invalidateSize(); }, 50);
+      };
+      tabDecode.onclick = function () {
+        tabDecode.classList.add("active");
+        tabEncode.classList.remove("active");
+        panelDecode.style.display = "block";
+        panelEncode.style.display = "none";
+        if (window.map2) setTimeout(function () { map2.invalidateSize(); }, 50);
+      };
+
+      var map = L.map('map').setView([22.5, 79.0], 4);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+
+      var marker = null;
+      var pinOut = document.getElementById('pin-out');
+      var coordsOut = document.getElementById('coords-out');
+      var copyBtn = document.getElementById('copy-btn');
+      var locationBtn = document.getElementById('location-btn');
+      var locationStatus = document.getElementById('location-status');
+
+      function setLocation(lat, lng, shouldCenter) {
+        var code = encodeDigipin(lat, lng);
+        if (marker) map.removeLayer(marker);
+        marker = L.marker([lat, lng]).addTo(map);
+        if (shouldCenter) map.setView([lat, lng], 17);
+        if (code) {
+          pinOut.textContent = code;
+          coordsOut.textContent = lat.toFixed(6) + ", " + lng.toFixed(6);
+          copyBtn.style.display = "inline-block";
+        } else {
+          pinOut.textContent = "Outside India's bounding box";
+          coordsOut.textContent = "";
+          copyBtn.style.display = "none";
+        }
+      }
+
+      map.on('click', function (e) {
+        setLocation(e.latlng.lat, e.latlng.lng, false);
+      });
+
+      locationBtn.onclick = function () {
+        if (!navigator.geolocation) {
+          locationStatus.textContent = "Your browser does not support location access.";
+          locationStatus.className = "error";
+          return;
+        }
+        locationBtn.disabled = true;
+        locationStatus.textContent = "Getting your location…";
+        locationStatus.className = "";
+        navigator.geolocation.getCurrentPosition(function (position) {
+          setLocation(position.coords.latitude, position.coords.longitude, true);
+          var accuracy = Math.round(position.coords.accuracy);
+          locationStatus.textContent = "Live location added (accuracy: about " + accuracy + " m).";
+          locationBtn.disabled = false;
+        }, function (error) {
+          var messages = {
+            1: "Location permission was denied. Allow it in your browser settings and try again.",
+            2: "Your location is unavailable. Try again or place the pin manually.",
+            3: "Location request timed out. Try again or place the pin manually."
+          };
+          locationStatus.textContent = messages[error.code] || "Unable to get your location.";
+          locationStatus.className = "error";
+          locationBtn.disabled = false;
+        }, {
+          enableHighAccuracy: true,
+          timeout: 20000,
+          maximumAge: 0
+        });
+      };
+
+      copyBtn.onclick = function () {
+        navigator.clipboard.writeText(pinOut.textContent.replace(/-/g, ""));
+        copyBtn.textContent = "Copied!";
+        setTimeout(function () { copyBtn.textContent = "Copy"; }, 1500);
+      };
+
+      var map2 = null, marker2 = null;
+      document.getElementById('decode-btn').onclick = function () {
+        var val = document.getElementById('decode-input').value.trim();
+        var errEl = document.getElementById('decode-error');
+        if (!val) {
+          errEl.textContent = "Enter a DIGIPIN first";
+          errEl.style.display = "block";
+          return;
+        }
+        var result = decodeDigipin(val);
+        if (!result) {
+          errEl.textContent = "That doesn't look like a valid 10-character DIGIPIN";
+          errEl.style.display = "block";
+          return;
+        }
+        errEl.style.display = "none";
+        var mapDiv = document.getElementById('map2');
+        mapDiv.style.display = "block";
+        if (!map2) {
+          map2 = L.map('map2');
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+          }).addTo(map2);
+          window.map2 = map2;
+        }
+        map2.setView([result.lat, result.lon], 17);
+        setTimeout(function () { map2.invalidateSize(); }, 50);
+        if (marker2) map2.removeLayer(marker2);
+        marker2 = L.marker([result.lat, result.lon]).addTo(map2);
+      };
+
+    });
+  </script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+    import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+    import { firebaseConfig } from "./firebase-config.js";
+
+    const logoutBtn = document.getElementById("logout-btn");
+    const auth = getAuth(initializeApp(firebaseConfig));
+
+    logoutBtn.addEventListener("click", async () => {
+      logoutBtn.disabled = true;
+      logoutBtn.textContent = "Logging out…";
+      try {
+        await signOut(auth);
+        window.location.href = "./login.html";
+      } catch (error) {
+        logoutBtn.disabled = false;
+        logoutBtn.textContent = "Log out";
+        window.alert("Could not log out. Please try again.");
+      }
+    });
+  </script>
+</body>
+</html>

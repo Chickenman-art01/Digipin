@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Zolexora — Sign in</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#151A33;
+    --ink-soft:#3C4266;
+    --paper:#F7F6F2;
+    --amber:#F5A524;
+    --amber-deep:#C97F0D;
+    --line: rgba(21,26,51,0.12);
+    --danger:#B3261E;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;}
+  body{
+    font-family:'Inter',sans-serif;
+    color:var(--ink);
+    background:var(--paper);
+    display:flex;
+    min-height:100vh;
+  }
+  /* Left brand panel */
+  .brand{
+    flex:1.1;
+    background:var(--ink);
+    color:var(--paper);
+    position:relative;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    padding:3rem;
+  }
+  .brand-mark{
+    font-family:'Fraunces',serif;
+    font-weight:700;
+    font-size:1.5rem;
+    letter-spacing:0.02em;
+  }
+  .brand-copy{
+    max-width:26rem;
+  }
+  .brand-copy h1{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:clamp(2rem, 4vw, 2.8rem);
+    line-height:1.15;
+    margin:0 0 1rem;
+  }
+  .brand-copy p{
+    color:rgba(247,246,242,0.65);
+    font-size:0.95rem;
+    line-height:1.6;
+    margin:0;
+  }
+  .route{
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+  }
+  .route svg{width:100%;height:100%;}
+  .route path{
+    fill:none;
+    stroke:rgba(245,165,36,0.35);
+    stroke-width:1.5;
+    stroke-dasharray:6 8;
+    animation:dash 22s linear infinite;
+  }
+  @keyframes dash{ to { stroke-dashoffset:-500; } }
+  .route circle{ fill:var(--amber); }
+  .brand-foot{
+    font-size:0.8rem;
+    color:rgba(247,246,242,0.45);
+  }
+
+  /* Right form panel */
+  .panel{
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:2rem;
+  }
+  .card{
+    width:100%;
+    max-width:23rem;
+  }
+  .eyebrow{
+    font-size:0.75rem;
+    text-transform:uppercase;
+    letter-spacing:0.12em;
+    color:var(--ink-soft);
+    margin:0 0 0.5rem;
+  }
+  .card h2{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:1.7rem;
+    margin:0 0 1.75rem;
+  }
+  .field{
+    margin-bottom:1.1rem;
+  }
+  .field label{
+    display:block;
+    font-size:0.82rem;
+    font-weight:500;
+    margin-bottom:0.4rem;
+    color:var(--ink-soft);
+  }
+  .field input{
+    width:100%;
+    padding:0.7rem 0.85rem;
+    border:1px solid var(--line);
+    border-radius:8px;
+    font-size:0.95rem;
+    font-family:inherit;
+    background:#fff;
+    color:var(--ink);
+    outline:none;
+    transition:border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .field input:focus{
+    border-color:var(--amber-deep);
+    box-shadow:0 0 0 3px rgba(245,165,36,0.18);
+  }
+  .primary-btn{
+    width:100%;
+    padding:0.8rem;
+    border:none;
+    border-radius:8px;
+    background:var(--ink);
+    color:var(--paper);
+    font-size:0.95rem;
+    font-weight:600;
+    font-family:inherit;
+    cursor:pointer;
+    transition:background 0.15s ease;
+  }
+  .primary-btn:hover{ background:#232a4d; }
+  .primary-btn:disabled{ opacity:0.6; cursor:not-allowed; }
+
+  .divider{
+    display:flex;
+    align-items:center;
+    gap:0.75rem;
+    margin:1.4rem 0;
+    color:var(--ink-soft);
+    font-size:0.78rem;
+  }
+  .divider::before,.divider::after{
+    content:"";
+    flex:1;
+    height:1px;
+    background:var(--line);
+  }
+
+  .google-btn{
+    width:100%;
+    padding:0.7rem;
+    border:1px solid var(--line);
+    border-radius:8px;
+    background:#fff;
+    color:var(--ink);
+    font-size:0.9rem;
+    font-weight:500;
+    font-family:inherit;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:0.6rem;
+  }
+  .google-btn:hover{ border-color:var(--ink-soft); }
+  .phone-section{
+    display:none;
+    margin-top:0.85rem;
+    padding:1rem;
+    border:1px solid var(--line);
+    border-radius:8px;
+    background:#fff;
+  }
+  .phone-section.visible{ display:block; }
+  .phone-section .field{ margin-bottom:0.8rem; }
+  .secondary-btn{
+    width:100%; padding:0.7rem; border:1px solid var(--line); border-radius:8px;
+    background:#fff; color:var(--ink); font:500 0.9rem inherit; cursor:pointer;
+  }
+  .sms-notice{ margin:0.75rem 0 0; color:var(--ink-soft); font-size:0.74rem; line-height:1.45; }
+  #recaptcha-container{ margin-top:0.85rem; }
+
+  .switch-mode{
+    text-align:center;
+    margin-top:1.5rem;
+    font-size:0.85rem;
+    color:var(--ink-soft);
+  }
+  .switch-mode button{
+    background:none;
+    border:none;
+    color:var(--amber-deep);
+    font-weight:600;
+    font-family:inherit;
+    font-size:0.85rem;
+    cursor:pointer;
+    padding:0;
+  }
+
+  .msg{
+    font-size:0.83rem;
+    border-radius:8px;
+    padding:0.6rem 0.75rem;
+    margin-bottom:1rem;
+    display:none;
+  }
+  .msg.error{
+    display:block;
+    background:rgba(179,38,30,0.08);
+    color:var(--danger);
+    border:1px solid rgba(179,38,30,0.2);
+  }
+  .msg.success{
+    display:block;
+    background:rgba(245,165,36,0.1);
+    color:var(--amber-deep);
+    border:1px solid rgba(245,165,36,0.3);
+  }
+
+  @media (max-width: 860px){
+    .brand{ display:none; }
+    .panel{ padding:1.25rem; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="brand">
+    <div class="brand-mark">Zolexora</div>
+
+    <div class="route" aria-hidden="true">
+      <svg viewBox="0 0 500 500" preserveAspectRatio="none">
+        <path d="M -20 380 C 100 340, 160 420, 260 360 S 420 250, 520 200" />
+        <circle cx="260" cy="360" r="4" />
+        <circle cx="520" cy="200" r="4" />
+      </svg>
+    </div>
+
+    <div class="brand-copy">
+      <h1>Every order,<br/>tracked to the doorstep.</h1>
+      <p>Sign in to manage your orders, saved addresses, and deliveries — pinpointed down to the meter with DIGIPIN.</p>
+    </div>
+
+    <div class="brand-foot">© 2026 Zolexora Marketplace</div>
+  </div>
+
+  <div class="panel">
+    <div class="card">
+      <p class="eyebrow" id="eyebrow">Welcome back</p>
+      <h2 id="heading">Sign in to your account</h2>
+
+      <div class="msg" id="msg"></div>
+
+      <form id="auth-form">
+        <div class="field">
+          <label for="email">Email</label>
+          <input type="email" id="email" autocomplete="email" required placeholder="you@example.com" />
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input type="password" id="password" autocomplete="current-password" required placeholder="••••••••" minlength="6" />
+        </div>
+        <button type="submit" class="primary-btn" id="submit-btn">Sign in</button>
+      </form>
+
+      <div class="divider">or continue with</div>
+
+      <button type="button" class="google-btn" id="google-btn">
+        <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.91c1.7-1.57 2.69-3.88 2.69-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.91-2.26c-.81.54-1.85.86-3.05.86-2.34 0-4.33-1.58-5.04-3.71H.96v2.33A9 9 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.96 10.71a5.4 5.4 0 0 1 0-3.42V4.96H.96a9 9 0 0 0 0 8.08l3-2.33z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.51.46 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .96 4.96l3 2.33C4.67 5.16 6.66 3.58 9 3.58z"/></svg>
+        Sign in with Google
+      </button>
+
+      <button type="button" class="google-btn" id="phone-btn" style="margin-top:0.75rem;">Sign in with phone</button>
+
+      <div class="phone-section" id="phone-section">
+        <div class="field">
+          <label for="phone-number">Mobile number</label>
+          <input type="tel" id="phone-number" autocomplete="tel" inputmode="tel" placeholder="+91 98765 43210" />
+        </div>
+        <button type="button" class="secondary-btn" id="send-code-btn">Send code</button>
+        <div id="recaptcha-container"></div>
+        <div id="verification-section" style="display:none; margin-top:0.9rem;">
+          <div class="field">
+            <label for="verification-code">SMS verification code</label>
+            <input type="text" id="verification-code" autocomplete="one-time-code" inputmode="numeric" maxlength="6" placeholder="6-digit code" />
+          </div>
+          <button type="button" class="primary-btn" id="verify-code-btn">Verify and sign in</button>
+        </div>
+        <p class="sms-notice">We’ll send a one-time SMS code to verify your number. Standard message rates may apply.</p>
+      </div>
+
+      <p class="switch-mode">
+        <span id="switch-copy">Don't have an account?</span>
+        <button type="button" id="switch-btn">Create one</button>
+      </p>
+    </div>
+  </div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+  import {
+    getAuth,
+    signInWithEmailAndPassword,
+    createUserWithEmailAndPassword,
+    GoogleAuthProvider,
+    signInWithPopup,
+    RecaptchaVerifier,
+    signInWithPhoneNumber
+  } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+  import { firebaseConfig } from "./firebase-config.js";
+
+  const missingFirebaseConfig = [
+    "apiKey",
+    "messagingSenderId",
+    "appId"
+  ].filter((key) => !firebaseConfig[key] || firebaseConfig[key].startsWith("PASTE_"));
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const provider = new GoogleAuthProvider();
+  auth.useDeviceLanguage();
+
+  let mode = "signin"; // or "signup"
+  let recaptchaVerifier = null;
+  let confirmationResult = null;
+
+  const form = document.getElementById("auth-form");
+  const submitBtn = document.getElementById("submit-btn");
+  const googleBtn = document.getElementById("google-btn");
+  const phoneBtn = document.getElementById("phone-btn");
+  const phoneSection = document.getElementById("phone-section");
+  const phoneNumber = document.getElementById("phone-number");
+  const sendCodeBtn = document.getElementById("send-code-btn");
+  const verificationSection = document.getElementById("verification-section");
+  const verificationCode = document.getElementById("verification-code");
+  const verifyCodeBtn = document.getElementById("verify-code-btn");
+  const switchBtn = document.getElementById("switch-btn");
+  const switchCopy = document.getElementById("switch-copy");
+  const heading = document.getElementById("heading");
+  const eyebrow = document.getElementById("eyebrow");
+  const msg = document.getElementById("msg");
+
+  function showMsg(text, type){
+    msg.textContent = text;
+    msg.className = "msg " + type;
+  }
+  function clearMsg(){
+    msg.className = "msg";
+    msg.textContent = "";
+  }
+
+  if (missingFirebaseConfig.length) {
+    showMsg(
+      "Firebase web-app configuration is incomplete. Add the API key, Messaging Sender ID, and App ID from Firebase Console → Project settings → Your apps → Web app.",
+      "error"
+    );
+  }
+
+  switchBtn.addEventListener("click", () => {
+    mode = mode === "signin" ? "signup" : "signin";
+    clearMsg();
+    if (mode === "signup"){
+      eyebrow.textContent = "Get started";
+      heading.textContent = "Create your account";
+      submitBtn.textContent = "Create account";
+      switchCopy.textContent = "Already have an account?";
+      switchBtn.textContent = "Sign in";
+    } else {
+      eyebrow.textContent = "Welcome back";
+      heading.textContent = "Sign in to your account";
+      submitBtn.textContent = "Sign in";
+      switchCopy.textContent = "Don't have an account?";
+      switchBtn.textContent = "Create one";
+    }
+  });
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    clearMsg();
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+    submitBtn.disabled = true;
+    submitBtn.textContent = mode === "signup" ? "Creating account…" : "Signing in…";
+
+    try {
+      if (mode === "signup"){
+        await createUserWithEmailAndPassword(auth, email, password);
+        showMsg("Account created — redirecting…", "success");
+      } else {
+        await signInWithEmailAndPassword(auth, email, password);
+        showMsg("Signed in — redirecting…", "success");
+      }
+      window.location.href = "./digipin-widget.html";
+    } catch (err) {
+      showMsg(friendlyError(err.code), "error");
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = mode === "signup" ? "Create account" : "Sign in";
+    }
+  });
+
+  googleBtn.addEventListener("click", async () => {
+    clearMsg();
+    try {
+      await signInWithPopup(auth, provider);
+      showMsg("Signed in with Google — redirecting…", "success");
+      window.location.href = "./digipin-widget.html";
+    } catch (err) {
+      showMsg(friendlyError(err.code), "error");
+    }
+  });
+
+  async function ensureRecaptcha(){
+    if (recaptchaVerifier) return;
+    recaptchaVerifier = new RecaptchaVerifier(auth, "send-code-btn", {
+      size: "invisible"
+    });
+    await recaptchaVerifier.render();
+  }
+
+  phoneBtn.addEventListener("click", async () => {
+    phoneSection.classList.add("visible");
+    phoneBtn.disabled = true;
+    try {
+      await ensureRecaptcha();
+      phoneNumber.focus();
+    } catch (err) {
+      showMsg(friendlyError(err.code), "error");
+    } finally {
+      phoneBtn.disabled = false;
+    }
+  });
+
+  sendCodeBtn.addEventListener("click", async () => {
+    const number = phoneNumber.value.trim().replace(/[\s()-]/g, "");
+    if (!/^\+[1-9]\d{7,14}$/.test(number)) {
+      showMsg("Enter your mobile number with its country code, for example +919876543210.", "error");
+      return;
+    }
+    sendCodeBtn.disabled = true;
+    clearMsg();
+    try {
+      await ensureRecaptcha();
+      sendCodeBtn.textContent = "Sending SMS…";
+      showMsg("Firebase is verifying this request before sending your SMS.", "success");
+      confirmationResult = await signInWithPhoneNumber(auth, number, recaptchaVerifier);
+      verificationSection.style.display = "block";
+      verificationCode.focus();
+      showMsg("SMS code sent. Enter it below to sign in.", "success");
+    } catch (err) {
+      showMsg(friendlyError(err.code), "error");
+    } finally {
+      sendCodeBtn.disabled = false;
+      sendCodeBtn.textContent = "Send code";
+    }
+  });
+
+  verifyCodeBtn.addEventListener("click", async () => {
+    const code = verificationCode.value.trim();
+    if (!confirmationResult) {
+      showMsg("Request an SMS code first.", "error");
+      return;
+    }
+    if (!/^\d{6}$/.test(code)) {
+      showMsg("Enter the 6-digit code from the SMS.", "error");
+      return;
+    }
+    verifyCodeBtn.disabled = true;
+    verifyCodeBtn.textContent = "Verifying…";
+    clearMsg();
+    try {
+      await confirmationResult.confirm(code);
+      showMsg("Phone verified — redirecting…", "success");
+      window.location.href = "./digipin-widget.html";
+    } catch (err) {
+      showMsg(friendlyError(err.code), "error");
+    } finally {
+      verifyCodeBtn.disabled = false;
+      verifyCodeBtn.textContent = "Verify and sign in";
+    }
+  });
+
+  function friendlyError(code){
+    const map = {
+      "auth/invalid-email": "That email address doesn't look right.",
+      "auth/user-not-found": "No account found with that email.",
+      "auth/wrong-password": "Incorrect password. Try again.",
+      "auth/invalid-credential": "Incorrect email or password.",
+      "auth/email-already-in-use": "An account already exists with that email.",
+      "auth/weak-password": "Password should be at least 6 characters.",
+      "auth/popup-closed-by-user": "Google sign-in was closed before finishing.",
+      "auth/api-key-not-valid": "The Firebase Web API key is invalid. Check firebase-config.js.",
+      "auth/invalid-api-key": "The Firebase Web API key is invalid. Check firebase-config.js.",
+      "auth/unauthorized-domain": "This site domain is not authorized in Firebase. Add the current app.github.dev hostname in Firebase Authentication → Settings → Authorized domains.",
+      "auth/operation-not-allowed": "This sign-in provider is disabled. Enable Phone in Firebase Authentication → Sign-in method.",
+      "auth/configuration-not-found": "Firebase Authentication has not been configured for this project.",
+      "auth/invalid-phone-number": "Enter a valid phone number with country code, for example +919876543210.",
+      "auth/missing-phone-number": "Enter your phone number before requesting a code.",
+      "auth/too-many-requests": "Too many attempts. Please wait before requesting another SMS code.",
+      "auth/quota-exceeded": "The SMS quota has been reached. Try again later.",
+      "auth/captcha-check-failed": "Complete the reCAPTCHA and try again.",
+      "auth/app-not-authorized": "This site is not authorized for phone sign-in. Add its hostname in Firebase Authentication settings.",
+      "auth/invalid-app-credential": "reCAPTCHA verification failed. Confirm this site hostname is authorized in Firebase Authentication settings.",
+      "auth/sms-not-allowed": "SMS messages are not allowed for this country. Update Firebase Authentication → Settings → SMS region policy.",
+      "auth/network-request-failed": "Network verification failed. Check your connection and try again.",
+      "auth/code-expired": "That SMS code expired. Request a new one.",
+      "auth/invalid-verification-code": "That SMS code is incorrect. Try again."
+    };
+    const message = map[code] || "Could not complete phone sign-in" + (code ? " (" + code + ")." : ".");
+    return map[code] && code ? message + " [" + code + "]" : message;
+  }
+</script>
+</body>
+</html>

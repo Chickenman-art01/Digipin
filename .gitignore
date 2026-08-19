@@ -1,0 +1,23 @@
+# Local environment configuration (may contain sensitive values)
+.env
+.env.local
+.env.*.local
+
+# Keep the shareable configuration template
+!.env.example
+
+# Dependencies and build output
+node_modules/
+dist/
+build/
+
+# Editor and operating-system files
+.vscode/
+.idea/
+.DS_Store
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
