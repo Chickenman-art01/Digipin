@@ -1,0 +1,18 @@
+{
+  "name": "Zolexora Delivery Pin",
+  "short_name": "Zolexora",
+  "description": "Pin and share an exact delivery location with DIGIPIN.",
+  "start_url": "./login.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F7F6F2",
+  "theme_color": "#151A33",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

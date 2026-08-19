@@ -3,8 +3,13 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#151A33" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <title>Zolexora — Pin your exact location (DIGIPIN)</title>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="favicon.svg">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
 <style>
   *{box-sizing:border-box;}
@@ -70,6 +75,24 @@
   }
   .row{ display:flex; gap:8px; margin-bottom:8px; }
   .error-text{ color:#B3261E; font-size:0.85rem; display:none; margin-bottom:8px; }
+  @media (max-width: 640px){
+    body{ max-width:none; margin:0; padding:calc(env(safe-area-inset-top) + 1rem) 1rem calc(env(safe-area-inset-bottom) + 1.25rem); min-height:100dvh; background:#F7F6F2; }
+    .page-header{ align-items:flex-start; }
+    .page-header h1{ font-size:1.45rem; line-height:1.2; max-width:14rem; }
+    #logout-btn{ min-height:2.6rem; padding:0.55rem 0.75rem; }
+    p.hint{ line-height:1.5; margin:0.6rem 0 1.2rem; }
+    .tabs{ gap:0.5rem; position:sticky; top:0; z-index:1002; padding:0.4rem 0; background:#F7F6F2; }
+    .tabs button{ min-height:3.2rem; font-size:0.82rem; padding:0.5rem; }
+    #map,#map2{ height:calc(100dvh - 20.5rem); min-height:300px; border-radius:14px; }
+    #location-btn{ width:46px; height:46px; border-radius:12px; right:14px; bottom:14px; font-size:1.55rem; }
+    .result-box{ position:relative; margin-top:0.85rem; flex-wrap:nowrap; align-items:stretch; }
+    .result-pill{ min-width:0; padding:0.8rem 0.9rem; }
+    .result-pill .value{ font-size:1.05rem; overflow:hidden; text-overflow:ellipsis; }
+    #copy-btn{ display:none; min-width:4.6rem; border-radius:10px; }
+    .row{ align-items:stretch; }
+    #decode-input,#decode-btn{ min-height:3rem; }
+    #decode-btn{ border-radius:10px; }
+  }
 </style>
 </head>
 <body>
@@ -313,6 +336,9 @@
         window.alert("Could not log out. Please try again.");
       }
     });
+  </script>
+  <script>
+    if ("serviceWorker" in navigator) navigator.serviceWorker.register("./service-worker.js");
   </script>
 </body>
 </html>

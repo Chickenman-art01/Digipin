@@ -3,8 +3,13 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#151A33" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <title>Zolexora — Sign in</title>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -234,8 +239,16 @@
   }
 
   @media (max-width: 860px){
-    .brand{ display:none; }
-    .panel{ padding:1.25rem; }
+    body{ min-height:100dvh; }
+    .brand{
+      display:flex; flex:none; min-height:13.5rem; padding:calc(env(safe-area-inset-top) + 1.25rem) 1.5rem 1.5rem;
+      justify-content:flex-start; gap:2.2rem;
+    }
+    .brand-copy h1{ font-size:2rem; max-width:19rem; }
+    .brand-copy p,.brand-foot{ display:none; }
+    .panel{ padding:2rem 1.5rem calc(env(safe-area-inset-bottom) + 2rem); align-items:flex-start; }
+    .card{ max-width:none; }
+    .field input,.primary-btn,.google-btn{ min-height:3.15rem; font-size:1rem; }
   }
 </style>
 </head>
@@ -525,6 +538,9 @@
     const message = map[code] || "Could not complete phone sign-in" + (code ? " (" + code + ")." : ".");
     return map[code] && code ? message + " [" + code + "]" : message;
   }
+</script>
+<script>
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("./service-worker.js");
 </script>
 </body>
 </html>
